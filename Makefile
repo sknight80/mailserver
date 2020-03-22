@@ -36,12 +36,12 @@ init:
 		-e POSTGRES_USER=postfix \
 		-e POSTGRES_PASSWORD=testpasswd \
 		-v "`pwd`/test/config/postgres":/docker-entrypoint-initdb.d \
-		-t postgres:10.5-alpine
+		-t postgres:12-alpine
 
 	docker run \
 		-d \
 		--name redis \
-		-t redis:4.0-alpine
+		-t redis:5.0-alpine
 
 	docker run \
 		-d \
@@ -51,7 +51,7 @@ init:
 		-e LDAP_ADMIN_PASSWORD="testpasswd" \
 		-e LDAP_TLS=false \
 		-v "`pwd`/test/config/ldap/struct.ldif":/container/service/slapd/assets/config/bootstrap/ldif/custom/struct.ldif \
-		-t osixia/openldap:1.2.2 --copy-service
+		-t osixia/openldap:1.3.0 --copy-service
 
 	sleep 10
 

@@ -1323,7 +1323,7 @@ load 'test_helper/bats-assert/load'
 }
 
 @test "checking postfix: milter-reject - clamav virus found" {
-  run docker exec mailserver_default grep -i 'milter-reject.*clamav: virus found' /var/log/mail.log
+  run docker exec mailserver_default grep -i 'milter-reject.*Spam message rejected; from=<virus@gmail.com>' /var/log/mail.log
   assert_success
 }
 
@@ -1615,18 +1615,13 @@ load 'test_helper/bats-assert/load'
   assert_success
 }
 
-@test "checking clamav: mirrors.dat exist" {
-  run docker exec mailserver_default [ -f /var/lib/clamav/mirrors.dat ]
-  assert_success
-}
-
 @test "checking clamav: default lib directory is a symlink" {
   run docker exec mailserver_default [ -L /var/lib/clamav ]
   assert_success
 }
 
 @test "checking clamav: Eicar-Test-Signature FOUND" {
-  run docker exec mailserver_default grep -i 'Eicar-Test-Signature(.*) FOUND' /var/log/mail.log
+  run docker exec mailserver_default grep -i '(44d88612fea8a8f36de82e1278abb02f:68) FOUND' /var/log/mail.log
   assert_success
 }
 
