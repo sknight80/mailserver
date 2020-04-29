@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y -q --no-install-recommends \
     rsyslog dnsutils curl unbound jq rsync \
     inotify-tools \
     # To enable compression in imap
-    arj bzip2 cabextract cpio file gzip nomarch pax unzip zip zoo \
+    arj bzip2 cabextract cpio file gzip nomarch pax unzip zip \
  && rm -rf /var/spool/postfix \
  && ln -s /var/mail/postfix/spool /var/spool/postfix \
  && apt-get autoremove -y \
