@@ -1,9 +1,3 @@
-:warning:
-
-# This docker image is no longer maintained
-
-:warning:
-
 ## Fork
 
 This is a fork of [hardware/mailserver](https://github.com/hardware/mailserver).
@@ -16,12 +10,30 @@ Thank you very much.
 [![](https://badges.gitter.im/hardware-mailserver/Lobby.svg)](https://gitter.im/hardware-mailserver/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ### Build
-
-[![Build Status](https://travis-ci.org/mailserver2/mailserver.svg?branch=master)](https://travis-ci.org/mailserver2/mailserver)
+https://travis-ci.org/github/sknight80/mailserver
+[![Build Status](https://travis-ci.org/sknight80/mailserver.svg?branch=master)](hhttps://travis-ci.org/github/sknight80/mailserver)
 
 ### Docker image
 
 [![](https://images.microbadger.com/badges/image/mailserver2/mailserver:latest.svg)](https://microbadger.com/images/mailserver2/mailserver:latest) [![](https://img.shields.io/docker/automated/mailserver2/mailserver.svg)](https://hub.docker.com/r/mailserver2/mailserver/builds/) [![](https://img.shields.io/docker/pulls/mailserver2/mailserver.svg)](https://hub.docker.com/r/mailserver2/mailserver/) [![](https://img.shields.io/docker/stars/mailserver2/mailserver.svg)](https://hub.docker.com/r/mailserver2/mailserver/) [![](https://img.shields.io/badge/bitcoin-donate-green.svg)](https://keybase.io/hardware)
+
+### Roadmap
+
+This Roadmap is just a TODO for myself to keep tracking what I want to achive with the project.  The map is not set in stone.
+
+
+| \# | Event                                         | Description                                                                                                                                               | Status                                                                                                                                                  |
+|----|-----------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1  | Updated based image \(debian\-mail\-overlay\) | Update to the latest debian version and using the latest packages from: <ul><li>Skalibs</li><li>Execline</li><li>s6</li><li>rspamd</li><li>Gucci</li></ul>| Done ([sknight80/debian-mail-overlay/commit/058de3e](https://github.com/sknight80/debian-mail-overlay/commit/058de3e34860543b213bfc7a5c4b963dc871a66d)) |
+| 2  | Merge all changes from mailserver2 branch     | Merge all changes from Sara Smiseth's branch                                                                                                              | Done (d5fd3ac8ff80cc6d984124c252585b25a0cd3d7b)                                                                                                         |
+| 3  | Enable IMAP compression                       | I wanted to enable imap compression for imap folders, so I can save spaces                                                                                | Done (ccaa1d9052e258226c6cb6c2d615f374735f591c)                                                                                                         |
+| 4  | Add rbl_override functionality to postfix     | I wanted to add whitelist ip address to the postfix, so we can skip validation, because we can trust on the sender. | Done (af786d6729e0667b71446166e01b3aa82f14b2ed) |
+| 5  | Update Dockerfile                             | I want to use my Docker image instead of the original one | Done (fe8d9c9bca824a7e5875ab4cbe1bb4289b403e47) |
+| 6  | Setup automation for the project              | I want to run Trevis and Dockerhub automatically on my branch | In Progress |
+| 7  | Update to Traefik 2.x                         | Update docker-compose file to the latest Traefik 2.x version | Not started |
+| 8  | Reviewing existing PRs and issues             | TBD | Not started |
+
+
 
 **hardware/mailserver** is a simple and full-featured mail server build as a set of multiple docker images, including:
 
@@ -45,59 +57,59 @@ Thank you very much.
 
 ### Summary
 
-- [This docker image is no longer maintained](#this-docker-image-is-no-longer-maintained)
-  - [Fork](#fork)
-  - [hardware/mailserver](#hardwaremailserver)
-    - [Chat & questions](#chat--questions)
-    - [Build](#build)
-    - [Docker image](#docker-image)
-    - [Summary](#summary)
-    - [System Requirements](#system-requirements)
-      - [With MariaDB/PostgreSQL and Redis on the same host](#with-mariadbpostgresql-and-redis-on-the-same-host)
-      - [With MariaDB/PostgreSQL and Redis hosted on another server](#with-mariadbpostgresql-and-redis-hosted-on-another-server)
-    - [Prerequisites](#prerequisites)
-      - [Cleaning](#cleaning)
-      - [Ports](#ports)
-      - [DNS setup](#dns-setup)
-      - [DNS records and reverse PTR](#dns-records-and-reverse-ptr)
-      - [Testing](#testing)
-    - [Installation](#installation)
-      - [1 - Prepare your environment](#1---prepare-your-environment)
-      - [2 - Postfixadmin installation](#2---postfixadmin-installation)
-      - [3 - Rainloop installation (optional)](#3---rainloop-installation-optional)
-      - [4 - Done, congratulation ! :tada:](#4---done-congratulation--tada)
-    - [Rancher Catalog](#rancher-catalog)
-    - [Ansible Playbooks](#ansible-playbooks)
-    - [Environment variables](#environment-variables)
-    - [Automatic GPG encryption of all your emails](#automatic-gpg-encryption-of-all-your-emails)
-      - [How does it work ?](#how-does-it-work)
-      - [Enable automatic GPG encryption](#enable-automatic-gpg-encryption)
-      - [Import your public key](#import-your-public-key)
-      - [Import all recipients public keys](#import-all-recipients-public-keys)
-      - [Specify another GPG keyserver](#specify-another-gpg-keyserver)
-      - [Run other GPG options](#run-other-gpg-options)
-    - [Relaying from other networks](#relaying-from-other-networks)
-    - [SSL certificates](#ssl-certificates)
-      - [Let's Encrypt certificates generated by Traefik](#lets-encrypt-certificates-generated-by-traefik)
-      - [Custom certificates](#custom-certificates)
-      - [Testing](#testing-1)
-    - [MTA-STS](#mta-sts)
-    - [Third-party Clamav signature databases](#third-party-clamav-signature-databases)
-      - [Required Ports](#required-ports)
-      - [Enable clamav-unofficial-sigs](#enable-clamav-unofficial-sigs)
-    - [Unbound DNS resolver](#unbound-dns-resolver)
-    - [PostgreSQL support](#postgresql-support)
-    - [LDAP support](#ldap-support)
-    - [IPv6 support](#ipv6-support)
-    - [Persistent files and folders in /mnt/docker/mail Docker volume](#persistent-files-and-folders-in-mntdockermail-docker-volume)
-    - [Override postfix configuration](#override-postfix-configuration)
-    - [Custom configuration for Dovecot](#custom-configuration-for-dovecot)
-    - [Postfix blacklist](#postfix-blacklist)
-    - [Email client settings](#email-client-settings)
-    - [Components](#components)
-    - [Migration from 1.0 to 1.1](#migration-from-10-to-11)
-    - [Community projects](#community-projects)
-    - [Some useful Thunderbird extensions](#some-useful-thunderbird-extensions)
+- [Fork](#fork)
+- [hardware/mailserver](#hardwaremailserver)
+  - [Chat & questions](#chat--questions)
+  - [Build](#build)
+  - [Docker image](#docker-image)
+  - [Roadmap](#roadmap)
+  - [Summary](#summary)
+  - [System Requirements](#system-requirements)
+    - [With MariaDB/PostgreSQL and Redis on the same host](#with-mariadbpostgresql-and-redis-on-the-same-host)
+    - [With MariaDB/PostgreSQL and Redis hosted on another server](#with-mariadbpostgresql-and-redis-hosted-on-another-server)
+  - [Prerequisites](#prerequisites)
+    - [Cleaning](#cleaning)
+    - [Ports](#ports)
+    - [DNS setup](#dns-setup)
+    - [DNS records and reverse PTR](#dns-records-and-reverse-ptr)
+    - [Testing](#testing)
+  - [Installation](#installation)
+    - [1 - Prepare your environment](#1---prepare-your-environment)
+    - [2 - Postfixadmin installation](#2---postfixadmin-installation)
+    - [3 - Rainloop installation (optional)](#3---rainloop-installation-optional)
+    - [4 - Done, congratulation ! :tada:](#4---done-congratulation--tada)
+  - [Rancher Catalog](#rancher-catalog)
+  - [Ansible Playbooks](#ansible-playbooks)
+  - [Environment variables](#environment-variables)
+  - [Automatic GPG encryption of all your emails](#automatic-gpg-encryption-of-all-your-emails)
+    - [How does it work ?](#how-does-it-work)
+    - [Enable automatic GPG encryption](#enable-automatic-gpg-encryption)
+    - [Import your public key](#import-your-public-key)
+    - [Import all recipients public keys](#import-all-recipients-public-keys)
+    - [Specify another GPG keyserver](#specify-another-gpg-keyserver)
+    - [Run other GPG options](#run-other-gpg-options)
+  - [Relaying from other networks](#relaying-from-other-networks)
+  - [SSL certificates](#ssl-certificates)
+    - [Let's Encrypt certificates generated by Traefik](#lets-encrypt-certificates-generated-by-traefik)
+    - [Custom certificates](#custom-certificates)
+    - [Testing](#testing-1)
+  - [MTA-STS](#mta-sts)
+  - [Third-party Clamav signature databases](#third-party-clamav-signature-databases)
+    - [Required Ports](#required-ports)
+    - [Enable clamav-unofficial-sigs](#enable-clamav-unofficial-sigs)
+  - [Unbound DNS resolver](#unbound-dns-resolver)
+  - [PostgreSQL support](#postgresql-support)
+  - [LDAP support](#ldap-support)
+  - [IPv6 support](#ipv6-support)
+  - [Persistent files and folders in /mnt/docker/mail Docker volume](#persistent-files-and-folders-in-mntdockermail-docker-volume)
+  - [Override postfix configuration](#override-postfix-configuration)
+  - [Custom configuration for Dovecot](#custom-configuration-for-dovecot)
+  - [Postfix blacklist](#postfix-blacklist)
+  - [Email client settings](#email-client-settings)
+  - [Components](#components)
+  - [Migration from 1.0 to 1.1](#migration-from-10-to-11)
+  - [Community projects](#community-projects)
+  - [Some useful Thunderbird extensions](#some-useful-thunderbird-extensions)
 
 ### System Requirements
 
