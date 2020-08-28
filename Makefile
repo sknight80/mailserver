@@ -1,8 +1,28 @@
 NAME = hardware/mailserver:testing
 
-all: build-no-cache init fixtures run clean
-all-fast: build init fixtures run clean
-no-build: init fixtures run clean
+UID :=$(shell id -u)
+GID :=$(shell id -g)
+OS_NAME := $(shell uname -s | tr A-Z a-z)
+ifeq ($(OS_NAME),darwin)
+        DOCKER_INSIDE_USER  :=$(UID)
+        DOCKER_INSIDE_GROUP :=$(UID)
+else
+        DOCKER_INSIDE_USER  :=$(UID)
+        DOCKER_INSIDE_GROUP :=$(GID)
+endif
+
+
+
+all: build-no-cache os init fixtures run clean
+all-fast: build os init fixtures run clean
+no-build: os init fixtures run clean
+
+
+os:
+	@echo "Running OS:" $(OS_NAME)
+	@echo "USER ID INSIDE DOCKER:" $(DOCKER_INSIDE_USER)
+	@echo "GROUP ID INSIDE DOCKER:" $(DOCKER_INSIDE_GROUP)
+	sleep 2
 
 build-no-cache:
 	docker build --no-cache -t $(NAME) .
@@ -25,8 +45,8 @@ init:
 		-e MYSQL_DATABASE=postfix \
 		-e MYSQL_USER=postfix \
 		-e MYSQL_PASSWORD=testpasswd \
-		-v "`pwd`/test/config/mariadb/struct.sql":/docker-entrypoint-initdb.d/struct.sql \
-		-v "`pwd`/test/config/mariadb/bind.cnf":/etc/mysql/conf.d/bind.cnf \
+		-v "`pwd`/test/config/mariadb/struct.sql":/docker-entrypoint-initdb.d/struct.sql:consistent \
+		-v "`pwd`/test/config/mariadb/bind.cnf":/etc/mysql/conf.d/bind.cnf:consistent \
 		-t mysql:5.7
 
 	docker run \
@@ -35,7 +55,7 @@ init:
 		-e POSTGRES_DB=postfix \
 		-e POSTGRES_USER=postfix \
 		-e POSTGRES_PASSWORD=testpasswd \
-		-v "`pwd`/test/config/postgres":/docker-entrypoint-initdb.d \
+		-v "`pwd`/test/config/postgres":/docker-entrypoint-initdb.d:consistent \
 		-t postgres:12-alpine
 
 	docker run \
@@ -50,7 +70,7 @@ init:
 		-e LDAP_DOMAIN="domain.tld" \
 		-e LDAP_ADMIN_PASSWORD="testpasswd" \
 		-e LDAP_TLS=false \
-		-v "`pwd`/test/config/ldap/struct.ldif":/container/service/slapd/assets/config/bootstrap/ldif/custom/struct.ldif \
+		-v "`pwd`/test/config/ldap/struct.ldif":/container/service/slapd/assets/config/bootstrap/ldif/custom/struct.ldif:consistent \
 		-t osixia/openldap:1.3.0 --copy-service
 
 	sleep 10
@@ -62,16 +82,16 @@ init:
 		--link redis:redis \
 		-e DBPASS=testpasswd \
 		-e RSPAMD_PASSWORD=testpasswd \
-		-e VMAILUID=`id -u` \
-		-e VMAILGID=`id -g` \
+		-e VMAILUID=$(DOCKER_INSIDE_USER) \
+		-e VMAILGID=$(DOCKER_INSIDE_GROUP) \
 		-e ADD_DOMAINS=domain2.tld,domain3.tld \
 		-e RECIPIENT_DELIMITER=: \
 		-e TESTING=true \
-		-v "`pwd`/test/share/tests":/tmp/tests \
-		-v "`pwd`/test/share/ssl/rsa":/var/mail/ssl \
+		-v "`pwd`/test/share/tests":/tmp/tests:consistent \
+		-v "`pwd`/test/share/ssl/rsa":/var/mail/ssl:consistent \
 		-v "`pwd`/test/share/postfix/custom.conf":/var/mail/postfix/custom.conf \
 		-v "`pwd`/test/share/postfix/sender_access":/var/mail/postfix/sender_access \
-		-v "`pwd`/test/share/dovecot/conf.d":/var/mail/dovecot/conf.d \
+		-v "`pwd`/test/share/dovecot/conf.d":/var/mail/dovecot/conf.d:consistent \
 		-v "`pwd`/test/share/clamav/unofficial-sigs/user.conf":/var/mail/clamav-unofficial-sigs/user.conf \
 		-h mail.domain.tld \
 		-t $(NAME)
@@ -91,8 +111,8 @@ init:
 		-e REDIS_PORT=6379 \
 		-e REDIS_PASS=/tmp/passwd/redis \
 		-e RSPAMD_PASSWORD=/tmp/passwd/rspamd \
-		-e VMAILUID=`id -u` \
-		-e VMAILGID=`id -g` \
+		-e VMAILUID=$(DOCKER_INSIDE_USER) \
+		-e VMAILGID=$(DOCKER_INSIDE_GROUP) \
 		-e VMAIL_SUBDIR=subdir \
 		-e RELAY_NETWORKS="192.168.0.0/16 172.16.0.0/12 10.0.0.0/8" \
 		-e DISABLE_CLAMAV=true \
@@ -107,11 +127,11 @@ init:
 		-e DKIM_KEY_LENGTH=4096 \
 		-e DKIM_SELECTOR="other" \
 		-e TESTING=true \
-		-v "`pwd`/test/share/tests":/tmp/tests \
+		-v "`pwd`/test/share/tests":/tmp/tests:consistent \
 		-v "`pwd`/test/share/passwd":/tmp/passwd \
 		-v "`pwd`/test/share/ssl/rsa":/var/mail/ssl \
 		-v "`pwd`/test/share/sieve/custom.sieve":/var/mail/sieve/custom.sieve \
-		-v "`pwd`/test/share/letsencrypt":/etc/letsencrypt \
+		-v "`pwd`/test/share/letsencrypt":/etc/letsencrypt:consistent \
 		-t $(NAME)
 
 	docker run \
@@ -146,8 +166,8 @@ init:
 		-e LDAP_DOVECOT_ITERATE_ATTRS="mail=user" \
 		-e LDAP_DOVECOT_ITERATE_FILTER="(objectClass=mailAccount)" \
 		-e DKIM_SELECTOR="mail20190101" \
-		-e VMAILUID=`id -u` \
-		-e VMAILGID=`id -g` \
+		-e VMAILUID=$(DOCKER_INSIDE_USER) \
+		-e VMAILGID=$(DOCKER_INSIDE_GROUP) \
 		-e RSPAMD_PASSWORD=testpasswd \
 		-e ADD_DOMAINS=domain2.tld,domain3.tld \
 		-e RECIPIENT_DELIMITER=: \
@@ -197,8 +217,8 @@ init:
 		-e DISABLE_GREYLISTING=true \
 		-e DISABLE_RATELIMITING=true \
 		-e DISABLE_DNS_RESOLVER=true \
-		-e VMAILUID=`id -u` \
-		-e VMAILGID=`id -g` \
+		-e VMAILUID=$(DOCKER_INSIDE_USER) \
+		-e VMAILGID=$(DOCKER_INSIDE_GROUP) \
 		-e RSPAMD_PASSWORD=testpasswd \
 		-e ADD_DOMAINS=domain2.tld,domain3.tld \
 		-e RECIPIENT_DELIMITER=: \
@@ -219,8 +239,8 @@ init:
 		--link redis:redis \
 		-e DBPASS=testpasswd \
 		-e RSPAMD_PASSWORD=testpasswd \
-		-e VMAILUID=`id -u` \
-		-e VMAILGID=`id -g` \
+		-e VMAILUID=$(DOCKER_INSIDE_USER) \
+		-e VMAILGID=$(DOCKER_INSIDE_GROUP) \
 		-e DISABLE_CLAMAV=true \
 		-e DISABLE_RSPAMD_MODULE=rbl,mx_check,url_redirector \
 		-e WHITELIST_SPAM_ADDRESSES=test@example.com,another@domain.tld \
@@ -238,8 +258,8 @@ init:
 		-e DEBUG_MODE=dovecot,postfix \
 		-e DBPASS=testpasswd \
 		-e RSPAMD_PASSWORD=testpasswd \
-		-e VMAILUID=`id -u` \
-		-e VMAILGID=`id -g` \
+		-e VMAILUID=$(DOCKER_INSIDE_USER) \
+		-e VMAILGID=$(DOCKER_INSIDE_GROUP) \
 		-e DISABLE_CLAMAV=true \
 		-e TESTING=true \
 		-v "`pwd`/test/share/traefik/acme.v1.json":/etc/letsencrypt/acme/acme.json \
@@ -254,8 +274,8 @@ init:
 		-e DEBUG_MODE=true \
 		-e DBPASS=testpasswd \
 		-e RSPAMD_PASSWORD=testpasswd \
-		-e VMAILUID=`id -u` \
-		-e VMAILGID=`id -g` \
+		-e VMAILUID=$(DOCKER_INSIDE_USER) \
+		-e VMAILGID=$(DOCKER_INSIDE_GROUP) \
 		-e DISABLE_CLAMAV=true \
 		-e TESTING=true \
 		-v "`pwd`/test/share/traefik/acme.v2.json":/etc/letsencrypt/acme/acme.json \
